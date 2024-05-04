@@ -1,0 +1,14 @@
+s3BucketName: "ai-image-operator-dev-project"
+
+loglevel: "Info"
+
+imageFormat: "png"
+
+# don't put keys in a yaml file for prod!
+accessKeyID: ""
+
+secretAccessKey: ""
+
+sessionToken: ""
+
+saveToS3: "false"

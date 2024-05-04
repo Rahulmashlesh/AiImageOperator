@@ -1,0 +1,14 @@
+apiVersion: ai.example.com/v1
+kind: Image
+metadata:
+  name: image-sample-7
+  labels:
+    app.kubernetes.io/name: image
+    app.kubernetes.io/instance: image-sample
+    app.kubernetes.io/part-of: aiimageoperator
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: aiimageoperator
+
+spec:
+  # TODO(user): Add fields here
+  prompt: "fish dance "
