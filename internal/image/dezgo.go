@@ -29,7 +29,7 @@ func (d *Dezgo) Generate(ctx context.Context, input Input, logger logr.Logger) (
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("X-Dezgo-Key", os.Getenv("DEZGO_API_KEY"))
-	logger.Info("APIKEY:" + os.Getenv("DEZGO_API_KEY"))
+	//logger.Info("APIKEY:" + os.Getenv("DEZGO_API_KEY"))
 	client := http.DefaultClient
 	rsp, err := client.Do(req)
 	if err != nil {
@@ -43,11 +43,12 @@ func (d *Dezgo) Generate(ctx context.Context, input Input, logger logr.Logger) (
 		return Output{}, err
 	}
 
-	logger.Info("", "seed: ", seed)
+	//logger.Info("", "seed: ", seed)
 	return Output{
 		Seed: seed,
 		Data: body,
 	}, nil
 }
 
+// compiler magic, type implements the generator.
 var _ Generator = &Dezgo{}

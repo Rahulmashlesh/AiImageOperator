@@ -44,20 +44,6 @@ spec:
                   Prompt is the text input used to generate the image.
                   Constraints: Range: 0 ▶ 1000 characters.
                 type: string
-              storageSpec:
-                properties:
-                  accessModes:
-                    items:
-                      type: string
-                    type: array
-                  size:
-                    type: string
-                  storageClassName:
-                    type: string
-                required:
-                - accessModes
-                - size
-                type: object
             required:
             - prompt
             type: object

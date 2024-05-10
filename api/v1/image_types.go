@@ -1,7 +1,6 @@
 package v1
 
 import (
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -17,7 +16,7 @@ type ImageSpec struct {
 	// Constraints: Range: 0 ▶ 1000 characters.
 	Prompt string `json:"prompt"`
 
-	StorageSpec StorageSpec `json:"storageSpec,omitempty"`
+	//StorageSpec StorageSpec `json:"storageSpec,omitempty"`
 
 	//TODO: add model, format ...
 }
@@ -85,12 +84,6 @@ type ImageList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []Image `json:"items"`
-}
-
-type StorageSpec struct {
-	Size             string                              `json:"size"`
-	AccessModes      []corev1.PersistentVolumeAccessMode `json:"accessModes"`
-	StorageClassName string                              `json:"storageClassName,omitempty"`
 }
 
 func init() {

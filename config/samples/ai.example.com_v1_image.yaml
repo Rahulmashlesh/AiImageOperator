@@ -1,7 +1,8 @@
 apiVersion: ai.example.com/v1
 kind: Image
 metadata:
-  name: image-sample-7
+  namespace: images
+  name: image-sample-1
   labels:
     app.kubernetes.io/name: image
     app.kubernetes.io/instance: image-sample
@@ -11,4 +12,4 @@ metadata:
 
 spec:
   # TODO(user): Add fields here
-  prompt: "fish dance "
+  prompt: "Fishing dancing in water, Beta fish swimming."

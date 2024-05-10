@@ -1,6 +1,7 @@
 package controller
 
 import (
+	aiexamplecomv1 "AiImageOperator/api/v1"
 	config2 "AiImageOperator/internal/config"
 	"AiImageOperator/internal/image"
 	"bytes"
@@ -10,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/go-logr/logr"
+	"github.com/go-redis/redis/v8"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/rand"
@@ -21,8 +23,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"strconv"
-
-	aiexamplecomv1 "AiImageOperator/api/v1"
+	"strings"
 )
 
 // ImageReconciler reconciles a Image object
@@ -91,52 +92,76 @@ func (r *ImageReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 		}
 	}
 
-	input := image.Input{Prompt: img.Spec.Prompt, Seed: img.Status.Seed}
-	// TODO remove passing the logger to cache , just get it from the context.
+	input := image.Input{
+		Prompt: img.Spec.Prompt,
+		Seed:   img.Status.Seed,
+	}
+	output := image.Output{}
+	var err error
+
 	if img.Status.Seed == "" {
+
 		// It's a new prompt,
 		// generate the seed and make the API call to get the image.
-		randNumb := rand.Int63nRange(0, math.MaxUint32)
-		seed := strconv.FormatInt(randNumb, 10)
-		input.Seed = seed
+		input.Seed = strconv.FormatInt(rand.Int63nRange(0, math.MaxUint32), 10)
 
-		logger.Info("Making API call to get AI generated Image and inserting in cache")
-		logger.Info("Input prompt: " + input.Prompt)
+		logger.Info("New Image CR", "seed: ", input.Seed, "prompt: ", input.Prompt)
 
-		o, err := r.Generator.Generate(ctx, input, logger)
-
+		output, err = r.Generator.Generate(ctx, input, logger)
 		if err != nil {
-			logger.Info("")
+			logger.Error(err, "Error Generating Image", nil)
 			return ctrl.Result{}, err
 		}
 
-		img.Status.Seed = o.Seed
+		img.Status.Seed = output.Seed
 		if err := r.Status().Update(ctx, img); err != nil {
 			return ctrl.Result{}, err
 		}
 
+		// TODO: component, make an interface called storage and pass
+		logger.Info("Storing the Generated Image", "Image will be saved in: ", config2.AppConfig.SaveTo)
+		switch strings.ToLower(config2.AppConfig.SaveTo) {
+		case "s3":
+			err := UploadToS3(ctx, output.Data, config2.AppConfig.S3BucketName, output.Seed+"/"+input.Prompt, logger)
+			if err != nil {
+				return ctrl.Result{}, err
+			}
+		case "redis":
+			err := writeToRedis(ctx, output)
+			if err != nil {
+				return ctrl.Result{}, err
+			}
+		case "volume":
+			_, err := storeImageInObjectStorage(output)
+			if err != nil {
+				return ctrl.Result{}, err
+			}
+		}
 		return ctrl.Result{}, nil
 	} else {
-		output, foundInCache := r.Cache.Get(ctx, input, logger)
-		if foundInCache {
-			logger.Info("Image found in cache")
-
-			if config2.AppConfig.SaveToS3 == "true" {
-				err := UploadToS3(ctx, output.Data, config2.AppConfig.S3BucketName, output.Seed+"/"+input.Prompt, logger)
-				if err != nil {
-					return ctrl.Result{}, err
-				}
-			} else {
-				_, err := storeImageInObjectStorage(output)
-				if err != nil {
-					return ctrl.Result{}, err
-				}
-			}
-			r.Cache.Remove(ctx, input, logger)
-		}
+		logger.Info("Nothing to do", "Seed exists: ", input.Seed)
 	}
-
 	return ctrl.Result{}, nil
+}
+
+func writeToRedis(ctx context.Context, output image.Output) error {
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     "my-redis-master:6379", // Redis server address
+		Password: "",                     // no password set
+		DB:       0,                      // use default DB
+
+	})
+
+	// Test connection to Redis
+	_, err := rdb.Ping(ctx).Result()
+	if err != nil {
+		return err
+	}
+	_, err = rdb.Set(ctx, output.Seed, output.Data, 0).Result()
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func containsString(slice []string, s string) bool {
@@ -162,13 +187,13 @@ func (r *ImageReconciler) finalizeImage(ctx context.Context, logger logr.Logger,
 	// Execute cleanup logic, e.g., delete images from S3
 	logger.Info("Deleting external resources for", "Image", img.Name)
 	// Assume we use the image's UID to identify the resource in external systems
-	resourceKey := fmt.Sprintf("%s/%s", img.UID, img.Spec.Prompt)
+	//resourceKey := fmt.Sprintf("%s/%s", img.UID, img.Spec.Prompt)
 
-	if config2.AppConfig.SaveToS3 == "true" {
+	/*	if config2.AppConfig.SaveToS3 == "true" {
 		if err := deleteFromS3(ctx, config2.AppConfig.S3BucketName, resourceKey, logger); err != nil {
 			return err
 		}
-	}
+	}*/
 	return nil
 }
 
@@ -208,7 +233,8 @@ func UploadToS3(ctx context.Context, data []byte, bucket, objectKey string, logg
 	})
 
 	if err != nil {
-		logger.Error(err, "unable to upload to s3")
+		logger.Info("tracker 6")
+		logger.Error(err, "unable to upload to s3", 0)
 	}
 
 	logger.Info("Successfully uploaded to bucket", "bucket", bucket, "objectKey", objectKey)

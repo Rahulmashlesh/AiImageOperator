@@ -1,11 +1,10 @@
 package main
 
 import (
+	"AiImageOperator/internal/image"
 	"crypto/tls"
 	"flag"
 	"os"
-
-	"AiImageOperator/internal/image"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -109,9 +108,11 @@ func main() {
 	}
 
 	if err = (&controller.ImageReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
-		Cache:  image.NewMemCache(&image.Dezgo{}),
+		Client:    mgr.GetClient(),
+		Scheme:    mgr.GetScheme(),
+		Generator: &image.Dezgo{},
+
+		//Cache:  image.NewMemCache(&image.Dezgo{}),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Image")
 		os.Exit(1)

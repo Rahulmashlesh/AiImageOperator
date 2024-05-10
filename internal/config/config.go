@@ -15,7 +15,7 @@ type Config struct {
 	SessionToken    string
 	//Loglevel        string
 	//ImageFormat     string
-	SaveToS3 string
+	SaveTo string
 }
 
 func init() {
@@ -34,7 +34,7 @@ func init() {
 	viper.SetDefault("SessionToken", "")
 	//viper.SetDefault("Loglevel", "Info")
 	//viper.SetDefault("ImageFormat", "png")
-	viper.SetDefault("SaveToS3", "false")
+	viper.SetDefault("SaveTo", "redis")
 
 	if err := viper.Unmarshal(&AppConfig); err != nil {
 		log.Fatalf("Unable to decode into struct: %v", err)

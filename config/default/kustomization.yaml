@@ -113,7 +113,7 @@ replacements:
       fieldPath: .metadata.name # namespace of the service
     targets:
       - select:
-          kind: Certificatex
+          kind: Certificate
           group: cert-manager.io
           version: v1
         fieldPaths:

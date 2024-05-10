@@ -1,17 +1,24 @@
 # Useful commands for this project
 
-
+## Switch context to colima
+```sh
+kubectx colima
+```
 
 ## Build
 
-```sh
- docker build -t my-kubebuilder-app:latest . 
- ```
- or
 ```sh 
+ make generate 
  make docker-build
+ make install
+ make deploy
 ```
 
+```sh
+make docker-build
+make install
+make deploy
+```
 
 ## Rollout
 ```sh 
@@ -20,4 +27,6 @@
 
 ```
 
-LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJkakNDQVIyZ0F3SUJBZ0lCQURBS0JnZ3Foa2pPUFFRREFqQWpNU0V3SHdZRFZRUUREQmhyTTNNdGMyVnkKZG1WeUxXTmhRREUzTVRNNE1UTXdNamd3SGhjTk1qUXdOREl5TVRreE1ESTRXaGNOTXpRd05ESXdNVGt4TURJNApXakFqTVNFd0h3WURWUVFEREJock0zTXRjMlZ5ZG1WeUxXTmhRREUzTVRNNE1UTXdNamd3V1RBVEJnY3Foa2pPClBRSUJCZ2dxaGtqT1BRTUJCd05DQUFUaEptRkxYRlFhSGlZQnI1K3R0cm5sUzVJb2ZYRC84bUcxeTlKMG40RloKeFZucGJXU2YzOUdHcmVGM0JicU9nVXZ6LzAyY1I1YVhyNnpKa1dmbTFRU25vMEl3UURBT0JnTlZIUThCQWY4RQpCQU1DQXFRd0R3WURWUjBUQVFIL0JBVXdBd0VCL3pBZEJnTlZIUTRFRmdRVUZFUDBzWDZMUEJwbnViTWJKNGJqCnFqZHZVeGt3Q2dZSUtvWkl6ajBFQXdJRFJ3QXdSQUlnYlhpK1ZKVXpYS2c1OW10TzZUSG5aejFpUStJMko3RkkKcHJmdDJJMkJYYXdDSUFxU2kvS0JRTVNrNXNYMDdrWEQ1b3RqWHZiaCtOYm5sWEZUYnVYZVRUQlIKLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+## TODO:
+implement inteface for saving. 
+redis in diff name space. 
